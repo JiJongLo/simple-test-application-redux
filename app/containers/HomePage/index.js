@@ -1,25 +1,57 @@
-/*
- * HomePage
- *
- * This is the first thing users see of our App, at the '/' route
- *
- * NOTE: while this component should technically be a stateless functional
- * component (SFC), hot reloading does not currently support SFCs. If hot
- * reloading is not a necessity for you then you can refactor it and remove
- * the linting exception.
- */
+import React, {Component} from 'react';
+import { connect } from 'react-redux';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import SelectField from 'material-ui/SelectField';
+import MenuItem from 'material-ui/MenuItem';
+import AppBar from 'material-ui/AppBar';
+import _ from 'lodash';
+import {
+  getSomeData,
+  setCompany,
+} from './actions';
 
-import React from 'react';
-import { FormattedMessage } from 'react-intl';
-import messages from './messages';
-
-export default class HomePage extends React.Component { // eslint-disable-line react/prefer-stateless-function
-
+class HomePage extends React.Component {
+  componentDidMount(){
+   this.props.getData();
+  }
+  handleChange = (event, index, value) => {
+    this.props.setNewCompany(value);
+  };
   render() {
+    const items =  _.map(_.uniqBy(this.props.data , 'carrier'),(obj)=>{
+    return <MenuItem value={obj.carrier} key={obj.id} primaryText={` ${obj.carrier}`} />
+    });
+    items.push(<MenuItem value="All companies" key={1000400} primaryText="All companies" />);
     return (
-      <h1>
-        <FormattedMessage {...messages.header} />
-      </h1>
+    <MuiThemeProvider>
+      <div>
+      <AppBar
+        title="Flights"
+        iconElementRight={
+          <SelectField value={this.props.current} onChange={this.handleChange}>
+          {items}
+        </SelectField>
+        }
+      />
+
+      </div>
+    </MuiThemeProvider>
     );
   }
 }
+
+const mapStateToProps = (state)=>{
+  return state.get('mock').toJS();
+};
+
+function mapDispatchToProps(dispatch) {
+  return {
+    getData: () => {
+      dispatch(getSomeData())
+    },
+    setNewCompany : (name) => {
+    dispatch(setCompany(name))
+  },
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(HomePage);
